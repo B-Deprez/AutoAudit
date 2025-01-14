@@ -96,7 +96,9 @@ def AA_Smurf(ajm, max_iter, visualize):
 	[Reordered matrix, Best order for reordering]
 	"""
 	### In case using 'cfd_injected.pkl' file
-	# ajm, node_dict = edgelist_to_matrix(edgelist)
+	if type(ajm) == set:
+		print('Edge list to matrix...')
+		ajm, node_dict = edgelist_to_matrix(ajm)
 
 	### Get edge-pairs which have the number of intermediaries hgiher than the threshold c
 	print('Get Edge-Pairs...')
@@ -174,7 +176,7 @@ def AA_Smurf(ajm, max_iter, visualize):
 		plt.subplot(1, 2, 2)
 		plt.matshow(ro_ajm, fignum=False, cmap='binary')
 		plt.title('After Reordering')
-		# plt.savefig(visualize)
+		plt.savefig(visualize)
 		plt.show()
 		print('Done!\n')
 
@@ -182,17 +184,31 @@ def AA_Smurf(ajm, max_iter, visualize):
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Parameters for AA-Smurf of AutoAudit')
-	parser.add_argument('--f', default='data/sample_matrix.txt', type=str, help='Input Path')
+	#parser.add_argument('--f', default='data/sample_matrix.txt', type=str, help='Input Path')
+	#parser.add_argument('--f', default='data/cfd_injected.pkl', type=str, help='Input Path')
+	parser.add_argument('--f', default='data/HI-Small_edgelist.pkl', type=str, help='Input Path')
 	parser.add_argument('--o', default='results/AA-Smurf_result.png', type=str, help='Output Path')
 	parser.add_argument('--i', default=None, type=int, help='Maximum Iteration')
 	args = parser.parse_args()
 
-	ajm = np.loadtxt(args.f)
-	ro_ajm, order = AA_Smurf(ajm, args.i, args.o)
+	if args.f == 'data/sample_matrix.txt':
+		ajm = np.loadtxt(args.f)
+		ro_ajm, order = AA_Smurf(ajm, args.i, args.o)
 
 	### In case using 'cfd_injected.pkl' file
-	# with open(args.f, 'rb') as handle:
-	# 	data = pickle.load(handle)
-	# for k, v in data.items():
-	# 	for idx, vv in enumerate(v):
-	# 		ro_ajm, order = AA_Smurf(vv['Edgelist'], args.i, args.o)
+	# Data is injected with intermediaries from 10 to 50
+	# For each number of intermediaries, there are 10 folds to ensure low variance
+	if args.f == 'data/cfd_injected.pkl':
+		with open(args.f, 'rb') as handle:
+			data = pickle.load(handle)
+		for k, v in data.items():
+			for idx, vv in enumerate(v):
+				ro_ajm, order = AA_Smurf(vv['Edgelist'], args.i, args.o)
+				break
+			break
+
+	# Training with the IBM dataset
+	if args.f in ['data/HI-Small_edgelist.pkl', 'data/LI-Large_edgelist.pkl']:
+		with open(args.f, 'rb') as handle:
+			edgelist = pickle.load(handle)
+		ro_ajm, order = AA_Smurf(edgelist, args.i, args.o)
