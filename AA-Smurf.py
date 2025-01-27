@@ -177,7 +177,7 @@ def AA_Smurf(ajm, max_iter, visualize):
 		plt.matshow(ro_ajm, fignum=False, cmap='binary')
 		plt.title('After Reordering')
 		plt.savefig(visualize)
-		plt.show()
+		#plt.show()
 		print('Done!\n')
 
 	return ro_ajm, order
@@ -186,7 +186,8 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Parameters for AA-Smurf of AutoAudit')
 	#parser.add_argument('--f', default='data/sample_matrix.txt', type=str, help='Input Path')
 	#parser.add_argument('--f', default='data/cfd_injected.pkl', type=str, help='Input Path')
-	parser.add_argument('--f', default='data/HI-Small_edgelist.pkl', type=str, help='Input Path')
+	#parser.add_argument('--f', default='data/HI-Small_edgelist.pkl', type=str, help='Input Path')
+	parser.add_argument('--f', default='data/synthetic_edgelist.pkl', type=str, help='Input Path')
 	parser.add_argument('--o', default='results/AA-Smurf_result.png', type=str, help='Output Path')
 	parser.add_argument('--i', default=None, type=int, help='Maximum Iteration')
 	args = parser.parse_args()
@@ -208,7 +209,10 @@ if __name__ == '__main__':
 			break
 
 	# Training with the IBM dataset
-	if args.f in ['data/HI-Small_edgelist.pkl', 'data/LI-Large_edgelist.pkl']:
-		with open(args.f, 'rb') as handle:
-			edgelist = pickle.load(handle)
-		ro_ajm, order = AA_Smurf(edgelist, args.i, args.o)
+	if args.f in ['data/HI-Small_edgelist.pkl', 'data/LI-Large_edgelist.pkl', 'data/synthetic_edgelist.pkl']:
+		for i_seed in range(10):
+			with open('data/synthetic_edgelist_'+str(i_seed)+'.pkl', 'rb') as handle:
+				edgelist = pickle.load(handle)
+			ro_ajm, order = AA_Smurf(edgelist, args.i, 'results/AA-Smurf_result_'+str(i_seed)+'.png')
+			with open('results/synthetic_order_'+str(i_seed)+'.pkl', 'wb') as f:
+				pickle.dump(order, f)
