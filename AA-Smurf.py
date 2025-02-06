@@ -1,8 +1,3 @@
-####################################
-# Author: Jeremy (Meng-Chieh) Lee  #
-# Email	: mengchil@cs.cmu.edu      #
-####################################
-
 import numpy as np
 from scipy import sparse
 from math import ceil
@@ -187,7 +182,7 @@ if __name__ == '__main__':
 	#parser.add_argument('--f', default='data/sample_matrix.txt', type=str, help='Input Path')
 	#parser.add_argument('--f', default='data/cfd_injected.pkl', type=str, help='Input Path')
 	#parser.add_argument('--f', default='data/HI-Small_edgelist.pkl', type=str, help='Input Path')
-	parser.add_argument('--f', default='data/synthetic_edgelist.pkl', type=str, help='Input Path')
+	parser.add_argument('--f', default='synthetic', type=str, help='Input Path')
 	parser.add_argument('--o', default='results/AA-Smurf_result.png', type=str, help='Output Path')
 	parser.add_argument('--i', default=None, type=int, help='Maximum Iteration')
 	args = parser.parse_args()
@@ -208,11 +203,65 @@ if __name__ == '__main__':
 				break
 			break
 
-	# Training with the IBM dataset
-	if args.f in ['data/HI-Small_edgelist.pkl', 'data/LI-Large_edgelist.pkl', 'data/synthetic_edgelist.pkl']:
+	# Training with the synthetic dataset
+	if args.f in ['data/HI-Small_edgelist.pkl', 'data/LI-Large_edgelist.pkl']:
 		for i_seed in range(10):
 			with open('data/synthetic_edgelist_'+str(i_seed)+'.pkl', 'rb') as handle:
 				edgelist = pickle.load(handle)
 			ro_ajm, order = AA_Smurf(edgelist, args.i, 'results/AA-Smurf_result_'+str(i_seed)+'.png')
 			with open('results/synthetic_order_'+str(i_seed)+'.pkl', 'wb') as f:
 				pickle.dump(order, f)
+
+	# Training with the IBM dataset
+	if args.f == "synthetic":
+		n_nodes_list = [100, 10000, 100000] # Number of nodes in the graph
+		m_edges_list = [1, 2, 5] # Number of edges to attach from a new node to existing nodes
+		p_edges_list = [0.001, 0.01] # Probability of adding an edge between two nodes
+		generation_method_list = [
+			'Barabasi-Albert', 
+			'Erdos-Renyi', 
+			'Watts-Strogatz'
+			] # Generation method for the graph
+		n_patterns_list = [3, 5] # Number of smurfing patterns to add
+
+
+		results_all = dict()
+
+		for n_nodes in n_nodes_list:
+			for n_patterns in n_patterns_list:
+				if n_patterns <= 0.06*n_nodes:
+					for generation_method in generation_method_list:
+						if generation_method == 'Barabasi-Albert':
+							p_edges = 0
+							for m_edges in m_edges_list:
+								string_name = 'synthetic_' + generation_method + '_'  + str(n_nodes) + '_' + str(m_edges) + '_' + str(p_edges) + '_' + str(n_patterns)
+								print("====", string_name, "====")
+								for i_seed in range(10):
+									with open('data/edgelist_'+string_name+str(i_seed)+'.pkl', 'rb') as handle:
+										edgelist = pickle.load(handle)
+									ro_ajm, order = AA_Smurf(edgelist, args.i, 'results/AA-Smurf_result_'+str(i_seed)+'.png')
+									with open('results/order_'+string_name+str(i_seed)+'.pkl', 'wb') as f:
+										pickle.dump(order, f)
+						if generation_method == 'Erdos-Renyi':
+							m_edges = 0
+							for p_edges in p_edges_list:
+								string_name = 'synthetic_' + generation_method + '_'  + str(n_nodes) + '_' + str(m_edges) + '_' + str(p_edges) + '_' + str(n_patterns)
+								print("====", string_name, "====")
+								for i_seed in range(10):
+									with open('data/edgelist_'+string_name+str(i_seed)+'.pkl', 'rb') as handle:
+										edgelist = pickle.load(handle)
+									ro_ajm, order = AA_Smurf(edgelist, args.i, 'results/AA-Smurf_result_'+str(i_seed)+'.png')
+									with open('results/order_'+string_name+str(i_seed)+'.pkl', 'wb') as f:
+										pickle.dump(order, f)
+
+						if generation_method == 'Watts-Strogatz':
+							for m_edges in m_edges_list:
+								for p_edges in p_edges_list:
+									string_name = 'synthetic_' + generation_method + '_'  + str(n_nodes) + '_' + str(m_edges) + '_' + str(p_edges) + '_' + str(n_patterns)
+									print("====", string_name, "====")
+									for i_seed in range(10):
+										with open('data/edgelist_'+string_name+str(i_seed)+'.pkl', 'rb') as handle:
+											edgelist = pickle.load(handle)
+										ro_ajm, order = AA_Smurf(edgelist, args.i, 'results/AA-Smurf_result_'+str(i_seed)+'.png')
+										with open('results/order_'+string_name+str(i_seed)+'.pkl', 'wb') as f:
+											pickle.dump(order, f)
