@@ -3,7 +3,7 @@ import pickle
 import random
 
 def generate_synthetic_permutations(string_name):
-    for i_seed in range(10):
+    for i_seed in range(5):
         # Load the data and select the accounts as nodes
         edges = pd.read_csv('data/edge_data_'+string_name+'.csv')
 

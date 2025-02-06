@@ -92,11 +92,9 @@ def AA_Smurf(ajm, max_iter, visualize):
 	"""
 	### In case using 'cfd_injected.pkl' file
 	if type(ajm) == set:
-		print('Edge list to matrix...')
 		ajm, node_dict = edgelist_to_matrix(ajm)
 
 	### Get edge-pairs which have the number of intermediaries hgiher than the threshold c
-	print('Get Edge-Pairs...')
 	row, col = ajm, ajm.T
 	edis = OrderedDict()
 	dis_mtr = (sparse.csr_matrix(ajm) * sparse.csr_matrix(ajm)).todense()
@@ -105,11 +103,8 @@ def AA_Smurf(ajm, max_iter, visualize):
 		if val >= 3:
 			edis[(idx1, idx2)] = [val, np.arange(len(row))[(row[idx1] + col[idx2]) == 2]]
 	edis = OrderedDict(sorted(edis.items(), key=lambda t: t[1][0])[::-1])
-	print('Done!\n')
 
 	### Heuristically identify the best order by MDL and purity
-	print('Identify Best Order...')
-
 	def func(ajm, key, value, order, count, start, prev_mdl):
 		if key[0] not in order and key[1] not in order:
 			order.append(key[0])
@@ -153,7 +148,6 @@ def AA_Smurf(ajm, max_iter, visualize):
 		start_arr.append(tmp_start[max_idx])
 		mdl_arr.append(tmp_mdl[max_idx])
 		iter += 1
-	print('Done!\n')
 
 	### Get the result with MDL 10% higher than the minimum bits
 	max_idx = next(idx - 1 for idx, m in enumerate(mdl_arr) if m < mdl_arr[-1] * 1.1)
@@ -163,7 +157,6 @@ def AA_Smurf(ajm, max_iter, visualize):
 
 
 	if visualize != None:
-		print('Start Visualize Result...')
 		plt.figure(figsize=(12, 5))
 		plt.subplot(1, 2, 1)
 		plt.matshow(ajm, fignum=False, cmap='binary')
@@ -172,8 +165,7 @@ def AA_Smurf(ajm, max_iter, visualize):
 		plt.matshow(ro_ajm, fignum=False, cmap='binary')
 		plt.title('After Reordering')
 		plt.savefig(visualize)
-		#plt.show()
-		print('Done!\n')
+		plt.close()
 
 	return ro_ajm, order
 
@@ -205,7 +197,7 @@ if __name__ == '__main__':
 
 	# Training with the synthetic dataset
 	if args.f in ['data/HI-Small_edgelist.pkl', 'data/LI-Large_edgelist.pkl']:
-		for i_seed in range(10):
+		for i_seed in range(5):
 			with open('data/synthetic_edgelist_'+str(i_seed)+'.pkl', 'rb') as handle:
 				edgelist = pickle.load(handle)
 			ro_ajm, order = AA_Smurf(edgelist, args.i, 'results/AA-Smurf_result_'+str(i_seed)+'.png')
@@ -228,6 +220,10 @@ if __name__ == '__main__':
 		results_all = dict()
 
 		for n_nodes in n_nodes_list:
+			if n_nodes <= 200:
+				visualise = True
+			else: 
+				visualise = False
 			for n_patterns in n_patterns_list:
 				if n_patterns <= 0.06*n_nodes:
 					for generation_method in generation_method_list:
@@ -236,10 +232,14 @@ if __name__ == '__main__':
 							for m_edges in m_edges_list:
 								string_name = 'synthetic_' + generation_method + '_'  + str(n_nodes) + '_' + str(m_edges) + '_' + str(p_edges) + '_' + str(n_patterns)
 								print("====", string_name, "====")
-								for i_seed in range(10):
+								for i_seed in range(5):
 									with open('data/edgelist_'+string_name+str(i_seed)+'.pkl', 'rb') as handle:
 										edgelist = pickle.load(handle)
-									ro_ajm, order = AA_Smurf(edgelist, args.i, 'results/AA-Smurf_result_'+str(i_seed)+'.png')
+									if visualise:
+										vis_dir = 'results/AA-Smurf_result_'+string_name+str(i_seed)+'.png'
+									else:
+										vis_dir = None
+									ro_ajm, order = AA_Smurf(edgelist, args.i, vis_dir)
 									with open('results/order_'+string_name+str(i_seed)+'.pkl', 'wb') as f:
 										pickle.dump(order, f)
 						if generation_method == 'Erdos-Renyi':
@@ -247,10 +247,14 @@ if __name__ == '__main__':
 							for p_edges in p_edges_list:
 								string_name = 'synthetic_' + generation_method + '_'  + str(n_nodes) + '_' + str(m_edges) + '_' + str(p_edges) + '_' + str(n_patterns)
 								print("====", string_name, "====")
-								for i_seed in range(10):
+								for i_seed in range(5):
 									with open('data/edgelist_'+string_name+str(i_seed)+'.pkl', 'rb') as handle:
 										edgelist = pickle.load(handle)
-									ro_ajm, order = AA_Smurf(edgelist, args.i, 'results/AA-Smurf_result_'+str(i_seed)+'.png')
+									if visualise:
+										vis_dir = 'results/AA-Smurf_result_'+string_name+str(i_seed)+'.png'
+									else:
+										vis_dir = None
+									ro_ajm, order = AA_Smurf(edgelist, args.i, vis_dir)
 									with open('results/order_'+string_name+str(i_seed)+'.pkl', 'wb') as f:
 										pickle.dump(order, f)
 
@@ -259,9 +263,13 @@ if __name__ == '__main__':
 								for p_edges in p_edges_list:
 									string_name = 'synthetic_' + generation_method + '_'  + str(n_nodes) + '_' + str(m_edges) + '_' + str(p_edges) + '_' + str(n_patterns)
 									print("====", string_name, "====")
-									for i_seed in range(10):
+									for i_seed in range(5):
 										with open('data/edgelist_'+string_name+str(i_seed)+'.pkl', 'rb') as handle:
 											edgelist = pickle.load(handle)
-										ro_ajm, order = AA_Smurf(edgelist, args.i, 'results/AA-Smurf_result_'+str(i_seed)+'.png')
+										if visualise:
+											vis_dir = 'results/AA-Smurf_result_'+string_name+str(i_seed)+'.png'
+										else:
+											vis_dir = None
+										ro_ajm, order = AA_Smurf(edgelist, args.i, vis_dir)
 										with open('results/order_'+string_name+str(i_seed)+'.pkl', 'wb') as f:
 											pickle.dump(order, f)

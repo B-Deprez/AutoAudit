@@ -8,7 +8,7 @@ def evaluate_AA_Smurf(string_name):
     AUC_ROC_list = []
     AUC_PR_list = []
 
-    for i_seed in range(10):
+    for i_seed in range(5):
         with open('results/order_'+string_name+str(i_seed)+'.pkl', 'rb') as handle:
             order_nodes = pickle.load(handle)
         with open('data/map_id_inv_'+string_name+str(i_seed)+'.pkl', 'rb') as handle:
@@ -33,8 +33,9 @@ def evaluate_AA_Smurf(string_name):
 
         AUC_ROC_list.append(AUC_ROC)
         AUC_PR_list.append(AUC_PR)
-    print('AUC-ROC:', np.mean(AUC_ROC_list))
-    print('AUC-PR:', np.mean(AUC_PR_list))
+    #print('AUC-ROC:', np.mean(AUC_ROC_list))
+    #print('AUC-PR:', np.mean(AUC_PR_list))
+    return np.mean(AUC_ROC_list), np.mean(AUC_PR_list)
 
 n_nodes_list = [100, 10000, 100000] # Number of nodes in the graph
 m_edges_list = [1, 2, 5] # Number of edges to attach from a new node to existing nodes
@@ -58,17 +59,19 @@ for n_nodes in n_nodes_list:
                     for m_edges in m_edges_list:
                         string_name = 'synthetic_' + generation_method + '_'  + str(n_nodes) + '_' + str(m_edges) + '_' + str(p_edges) + '_' + str(n_patterns)
                         print("======"+string_name+"======")
-                        evaluate_AA_Smurf(string_name)
+                        result_int = evaluate_AA_Smurf(string_name)
+                        results_all[string_name] = result_int
                 if generation_method == 'Erdos-Renyi':
                     m_edges = 0
                     for p_edges in p_edges_list:
                         string_name = 'synthetic_' + generation_method + '_'  + str(n_nodes) + '_' + str(m_edges) + '_' + str(p_edges) + '_' + str(n_patterns)
                         print("======"+string_name+"======")
-                        evaluate_AA_Smurf(string_name)
-
+                        result_int = evaluate_AA_Smurf(string_name)
+                        results_all[string_name] = result_int
                 if generation_method == 'Watts-Strogatz':
                     for m_edges in m_edges_list:
                         for p_edges in p_edges_list:
                             string_name = 'synthetic_' + generation_method + '_'  + str(n_nodes) + '_' + str(m_edges) + '_' + str(p_edges) + '_' + str(n_patterns)
                             print("======"+string_name+"======")
-                            evaluate_AA_Smurf(string_name)
+                            result_int = evaluate_AA_Smurf(string_name)
+                            results_all[string_name] = result_int
