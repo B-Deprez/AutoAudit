@@ -5,8 +5,12 @@ import numpy as np
 
 
 def evaluate_AA_Smurf(string_name):
-    AUC_ROC_list = []
-    AUC_PR_list = []
+    columns = ['laundering', 'separate', 'new_mules', 'existing_mules']
+    AUC_ROC_dict = dict()
+    AUC_PR_dict = dict()
+    for column in columns:
+        AUC_ROC_dict[column] = []
+        AUC_PR_dict[column] = []
 
     for i_seed in range(5):
         with open('results/order_'+string_name+str(i_seed)+'.pkl', 'rb') as handle:
@@ -28,14 +32,18 @@ def evaluate_AA_Smurf(string_name):
         label_data['score'] = label_data['score'].fillna(0)
 
         # Calculate the AUC-ROC and AUC-PR
-        AUC_ROC = roc_auc_score(label_data['laundering'], label_data['score'])
-        AUC_PR = average_precision_score(label_data['laundering'], label_data['score'])
+        for column in columns:
+            AUC_ROC = roc_auc_score(label_data[column], label_data['score'])
+            AUC_PR = average_precision_score(label_data[column], label_data['score'])
+            AUC_ROC_dict[column].append(AUC_ROC)
+            AUC_PR_dict[column].append(AUC_PR)
 
-        AUC_ROC_list.append(AUC_ROC)
-        AUC_PR_list.append(AUC_PR)
-    #print('AUC-ROC:', np.mean(AUC_ROC_list))
-    #print('AUC-PR:', np.mean(AUC_PR_list))
-    return np.mean(AUC_ROC_list), np.mean(AUC_PR_list)
+    results = dict()
+    for column in columns:
+        AUC_ROC_list = AUC_ROC_dict[column]
+        AUC_PR_list = AUC_PR_dict[column]
+        results[column] = (np.mean(AUC_ROC_list), np.mean(AUC_PR_list))
+    return results
 
 n_nodes_list = [100, 10000, 100000] # Number of nodes in the graph
 m_edges_list = [1, 2, 5] # Number of edges to attach from a new node to existing nodes
@@ -75,3 +83,6 @@ for n_nodes in n_nodes_list:
                             print("======"+string_name+"======")
                             result_int = evaluate_AA_Smurf(string_name)
                             results_all[string_name] = result_int
+
+results_df = pd.DataFrame(results_all)
+results_df.to_csv("synthetic_autoaudit_combined.csv")
