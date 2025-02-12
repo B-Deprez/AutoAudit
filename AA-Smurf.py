@@ -8,6 +8,8 @@ from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 import argparse
 
+import timeit
+
 def log_star(x):
 	"""
 	Compute universal code length used for encode real number
@@ -216,9 +218,6 @@ if __name__ == '__main__':
 			] # Generation method for the graph
 		n_patterns_list = [3, 5] # Number of smurfing patterns to add
 
-
-		results_all = dict()
-
 		for n_nodes in n_nodes_list:
 			if n_nodes <= 200:
 				visualise = True
@@ -239,7 +238,12 @@ if __name__ == '__main__':
 										vis_dir = 'results/AA-Smurf_result_'+string_name+str(i_seed)+'.png'
 									else:
 										vis_dir = None
+									start = timeit.default_timer()
 									ro_ajm, order = AA_Smurf(edgelist, args.i, vis_dir)
+									stop = timeit.default_timer()
+									calc_time = stop - start
+									with open('results/time_results.txt', 'a') as f:
+										f.write(string_name+str(i_seed)+' start time '+str(start)+': '+str(calc_time)+'\n')
 									with open('results/order_'+string_name+str(i_seed)+'.pkl', 'wb') as f:
 										pickle.dump(order, f)
 						if generation_method == 'Erdos-Renyi':
@@ -254,7 +258,12 @@ if __name__ == '__main__':
 										vis_dir = 'results/AA-Smurf_result_'+string_name+str(i_seed)+'.png'
 									else:
 										vis_dir = None
+									start = timeit.default_timer()
 									ro_ajm, order = AA_Smurf(edgelist, args.i, vis_dir)
+									stop = timeit.default_timer()
+									calc_time = stop - start
+									with open('results/time_results.txt', 'a') as f:
+										f.write(string_name+str(i_seed)+' start time '+str(start)+': '+str(calc_time)+'\n')
 									with open('results/order_'+string_name+str(i_seed)+'.pkl', 'wb') as f:
 										pickle.dump(order, f)
 
@@ -270,6 +279,11 @@ if __name__ == '__main__':
 											vis_dir = 'results/AA-Smurf_result_'+string_name+str(i_seed)+'.png'
 										else:
 											vis_dir = None
+										start = timeit.default_timer()
 										ro_ajm, order = AA_Smurf(edgelist, args.i, vis_dir)
+										stop = timeit.default_timer()
+										calc_time = stop - start
+										with open('results/time_results.txt', 'a') as f:
+											f.write(string_name+str(i_seed)+' start time '+str(start)+': '+str(calc_time)+'\n')
 										with open('results/order_'+string_name+str(i_seed)+'.pkl', 'wb') as f:
 											pickle.dump(order, f)
